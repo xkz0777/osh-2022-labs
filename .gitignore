@@ -2,6 +2,4 @@
 !/lab1/.config
 !/lab1/initrd.cpio.gz
 !/lab1/bzImage
-!/lab1/syscall/bzImage
-!/lab1/syscall/initrd.c
-
+!/lab1/syscall
