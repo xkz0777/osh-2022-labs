@@ -14,4 +14,5 @@ int main(int argc, char *argv[]) {
     printf("Test1: buffer size too small, return value: %ld\n", res1);
     res2 = syscall(SYS_HELLO, buf2, len2);
     printf("Test2: buffer size is enough, return value: %ld, contents in buf2: %s", res2, buf2);
+    while (1) {}
 }
