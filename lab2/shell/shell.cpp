@@ -17,6 +17,7 @@
 
 #define WRITE_END 1 // pipe 写端口
 #define READ_END 0  // pipe 读端口
+#define MAX_PIPE_NUM 20
 
 std::vector<std::string> split(std::string s, const std::string &delimiter);
 
@@ -75,7 +76,9 @@ int main() {
                 return res;
             }
             continue;
-        } else if (pipe_num == 2) { // 两个进程之间通信
+        }
+
+        else if (pipe_num == 2) { // 两个进程之间通信
             trim(pipe_args[0]);
             trim(pipe_args[1]);
             int fd[2];
@@ -94,7 +97,7 @@ int main() {
 
             else if (pid == 0) { // 子进程
                 close(fd[READ_END]);
-                dup2(fd[WRITE_END], STDOUT_FILENO); // 将标准输出重定向到管道的读端口
+                dup2(fd[WRITE_END], STDOUT_FILENO); // 将标准输出重定向到管道的写端口
                 close(fd[WRITE_END]);
 
                 std::vector<std::string> args = split(pipe_args[0], " ");
@@ -112,7 +115,7 @@ int main() {
 
                 else if (pid == 0) { // 子进程
                     close(fd[WRITE_END]);
-                    dup2(fd[READ_END], STDIN_FILENO); // 将标准输入重定向到管道的写端口
+                    dup2(fd[READ_END], STDIN_FILENO); // 将标准输入重定向到管道的读端口
                     close(fd[READ_END]);
 
                     std::vector<std::string> args = split(pipe_args[1], " ");
@@ -124,9 +127,53 @@ int main() {
                     close(fd[WRITE_END]);
                     close(fd[READ_END]);
 
-                    while (wait(NULL) > 0);
+                    while (wait(NULL) > 0); // 等待所有子进程结束
                 }
             }
+        }
+
+        else { // 多个进程
+            int last_read_end = STDIN_FILENO; // 上个管道的读端，应该连到下个进程的写端
+            for (int i = 0; i < pipe_num; ++i) {
+                trim(pipe_args[i]);
+                int fd[2]; // 注意需要创建 n - 1 个不同管道
+                if (i < pipe_num - 1) { // 最后一条不创建管道（不需要再把输出传给别人）
+                    int res = pipe(fd);
+                    if (res < 0) {
+                        std::cout << "Failed to create pipe\n";
+                        continue;
+                    }
+                }
+
+                int pid = fork();
+
+                if (pid < 0) {
+                    std::cout << "Failed to create new process\n";
+                    continue;
+                }
+
+                else if (pid == 0) { // 子进程
+                    if (i > 0) {
+                        dup2(last_read_end, STDIN_FILENO); // 后面的不从标准输入拿，找 last_read_end
+                    }
+                    if (i < pipe_num - 1) {
+                        dup2(fd[WRITE_END], STDOUT_FILENO); // 前面的输出到当前管道写端口，以传给下一个
+                    }
+
+                    std::vector<std::string> args = split(pipe_args[i], " ");
+                    execute(args, true);
+                    exit(255);
+                }
+
+                else { // 父进程
+                    close(fd[WRITE_END]); // 父进程用不到 write_end
+                    if (i > 0) {
+                        close(last_read_end); // 关闭当前命令用完的 last_read_end
+                    }
+                    last_read_end = fd[READ_END]; // 更新 last_read_end
+                }
+            }
+            while (wait(NULL) > 0); // 等待所有子进程结束
         }
     }
 }
