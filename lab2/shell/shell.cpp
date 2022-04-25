@@ -12,15 +12,38 @@
 #include <unistd.h>
 // wait
 #include <sys/wait.h>
+// for trim
+#include <algorithm> 
 
 #define WRITE_END 1 // pipe 写端口
 #define READ_END 0  // pipe 读端口
 
 std::vector<std::string> split(std::string s, const std::string &delimiter);
 
-int exec_builtin(std::vector<std::string> &args);
-int exec_outer(std::vector<std::string> &args);
-int execute(std::vector<std::string> &args);
+int exec_builtin(std::vector<std::string> &args, int fd[]);
+int exec_outer(std::vector<std::string> &args, int fd[]);
+int execute(std::vector<std::string> &args, bool terminate = true);
+int redir_process(std::vector<std::string> &args, int fd[]);
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+        }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+        }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
 
 int main() {
     // 不同步 iostream 和 cstdio 的 buffer
@@ -44,16 +67,17 @@ int main() {
         }
 
         int pipe_num = pipe_args.size(); // "|" 的个数
-        if (pipe_num == 0) { // 没有管道
+        if (pipe_num == 1) { // 没有管道
             // 按空格分割命令为单词
             std::vector<std::string> args = split(pipe_args[0], " ");
-            int return_code = execute(args);
-            if (return_code == 1) {
-                continue;
-            } else {
-                return return_code;
+            int res = execute(args, false);
+            if (res) {
+                return res;
             }
-        } else if (pipe_num == 1) { // 两个进程之间通信
+            continue;
+        } else if (pipe_num == 2) { // 两个进程之间通信
+            trim(pipe_args[0]);
+            trim(pipe_args[1]);
             int fd[2];
             int res = pipe(fd);
             if (res < 0) {
@@ -69,17 +93,13 @@ int main() {
             }
 
             else if (pid == 0) { // 子进程
-                close(fd[WRITE_END]);
-                dup2(fd[READ_END], STDOUT_FILENO); // 将标准输出重定向到管道的读端口
                 close(fd[READ_END]);
+                dup2(fd[WRITE_END], STDOUT_FILENO); // 将标准输出重定向到管道的读端口
+                close(fd[WRITE_END]);
 
                 std::vector<std::string> args = split(pipe_args[0], " ");
-                int return_code = execute(args);
-                if (return_code == 1) {
-                    continue;
-                } else {
-                    return return_code;
-                }
+                execute(args, true);
+                exit(255);
             }
 
             else { // 父进程
@@ -91,17 +111,13 @@ int main() {
                 }
 
                 else if (pid == 0) { // 子进程
-                    close(fd[READ_END]);
-                    dup2(fd[WRITE_END], STDIN_FILENO); // 将标准输入重定向到管道的写端口
                     close(fd[WRITE_END]);
+                    dup2(fd[READ_END], STDIN_FILENO); // 将标准输入重定向到管道的写端口
+                    close(fd[READ_END]);
 
                     std::vector<std::string> args = split(pipe_args[1], " ");
-                    int return_code = execute(args);
-                    if (return_code == 1) {
-                        continue;
-                    } else {
-                        return return_code;
-                    }
+                    execute(args, true);
+                    exit(255);
                 }
 
                 else {
@@ -139,15 +155,16 @@ int exec_builtin(std::vector<std::string> &args) {
             // 如感兴趣可以自行搜索 GBK Unicode UTF-8 Codepage UTF-16 等进行学习
             std::cout << "Insufficient arguments\n";
             // 不要用 std::endl，std::endl = "\n" + fflush(stdout)
-            return 1; // 1 表示继续
+            return 1; // 1 表示执行失败，下同
         }
 
         // 调用系统 API
         int ret = chdir(args[1].c_str());
         if (ret < 0) {
             std::cout << "cd failed\n";
+            return -1;
         }
-        return 1;
+        return 0; // 0 表示执行成功，下同
     }
 
     // 显示当前工作目录
@@ -162,10 +179,11 @@ int exec_builtin(std::vector<std::string> &args) {
         const char *ret = getcwd(&cwd[0], PATH_MAX);
         if (ret == nullptr) {
             std::cout << "cwd failed\n";
+            return 1;
         } else {
             std::cout << ret << "\n";
+            return 0;
         }
-        return 1;
     }
 
     // 设置环境变量
@@ -187,7 +205,9 @@ int exec_builtin(std::vector<std::string> &args) {
             int ret = setenv(key.c_str(), value.c_str(), 1);
             if (ret < 0) {
                 std::cout << "export failed\n";
+                return 1;
             }
+            return 0;
         }
     }
 
@@ -211,9 +231,8 @@ int exec_builtin(std::vector<std::string> &args) {
         return code;
     }
 
-    else {
-        return -1;
-    }
+
+    return -1; // 是外部命令
 }
 
 // 外部命令, 创建子进程完成
@@ -222,7 +241,7 @@ int exec_outer(std::vector<std::string> &args) {
 
     // std::vector<std::string> 转 char **
     char *arg_ptrs[args.size() + 1];
-    for (auto i = 0; i < args.size(); i++) {
+    for (size_t i = 0; i < args.size(); i++) {
         arg_ptrs[i] = &args[i][0];
     }
     // exec p 系列的 argv 需要以 nullptr 结尾
@@ -243,14 +262,18 @@ int exec_outer(std::vector<std::string> &args) {
     if (ret < 0) {
         std::cout << "wait failed";
     }
+    return 0;
 }
 
-// 执行单条命令
-int execute(std::vector<std::string> &args) {
+// 执行单条命令，在子进程下 execute 时 terminate 为 true，正常运行完后终止进程（否则返回非 0 值）
+// 父进程下 terminate 为 false 
+int execute(std::vector<std::string> &args, bool terminate) {
     int res = exec_builtin(args);
     if (res == -1) {
-        exec_outer(args);
-        return 1;
+        res = exec_outer(args);
+    }
+    if (terminate && res == 0) {
+        exit(0);
     } else {
         return res;
     }
