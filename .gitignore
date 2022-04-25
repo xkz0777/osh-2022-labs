@@ -5,3 +5,5 @@
 !/lab1/syscall
 /lab1/syscall/initrd.cpio.gz
 /**/.DS_Store
+/**/.vscode
+/**/*.dSYM
