@@ -109,3 +109,46 @@ inline std::string get_user_name() { // 获取用户名 https://www.codetd.com/a
     pwd = getpwuid(userid);
     return pwd->pw_name;
 }
+
+void add_space_str(std::string &arg) {
+    size_t pos, pos1, pos2, pos3;
+    pos1 = arg.find("<", 0);
+    pos2 = arg.find(">", 0);
+    pos3 = arg.find(">>", 0);
+    while (pos1 != std::string::npos || pos2 != std::string::npos || pos3 != std::string::npos) {
+        pos = std::min(pos1, std::min(pos2, pos3));
+        if (pos == pos3) {
+            arg = arg.substr(0, pos) + " " + arg.substr(pos, 2) + " " + arg.substr(pos + 2);
+            pos1 = arg.find("<", pos + 3);
+            pos2 = arg.find(">", pos + 3);
+            pos3 = arg.find(">>", pos + 3);
+        } else {
+            arg = arg.substr(0, pos) + " " + arg[pos] + " " + arg.substr(pos + 1);
+            pos1 = arg.find("<", pos + 2);
+            pos2 = arg.find(">", pos + 2);
+            pos3 = arg.find(">>", pos + 2);
+        }
+    }
+}
+
+// void add_space_vec(std::vector<std::string> &args) {
+//     for (auto arg : args) {
+//         add_space_str(arg);
+//     }
+// }
+
+std::vector<std::string> parse_cmd(std::string &cmd) {
+    add_space_str(cmd);
+    std::vector<std::string> args = split(cmd, " ");
+    return args;
+}
+
+// std::vector<std::string> parse_cmd(std::vector<std::string> &args) {
+//     add_space_vec(args);
+//     std::vector<std::string> new_vec;
+//     for (auto arg : args) {
+//         std::vector<std::string> split_arg = split(arg, " ");
+//         new_vec.insert(new_vec.end(), split_arg.begin(), split_arg.end());
+//     }
+//     return new_vec;
+// }

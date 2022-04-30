@@ -16,10 +16,11 @@ int main() {
         print_prompt();
 
         // 读入一行。std::getline 结果不包含换行符。
-        if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
-            std::cout << "exit" << "\n";
-            return 0;
-        }
+        // if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
+        //     std::cout << "exit" << "\n";
+        //     return 0;
+        // }
+        std::getline(std::cin, cmd);
 
         if (cmd.empty()) {
             continue;
@@ -267,7 +268,7 @@ void exec_pipe(std::string &cmd, std::vector<std::string> &all_history) {
     int pipe_num = pipe_args.size(); // "|" 的个数
     if (pipe_num == 1) { // 没有管道
         // 按空格分割命令为单词
-        std::vector<std::string> args = split(pipe_args[0], " ");
+        std::vector<std::string> args = parse_cmd(pipe_args[0]);
         execute(args, all_history, false);
     }
 
@@ -282,7 +283,7 @@ void exec_pipe(std::string &cmd, std::vector<std::string> &all_history) {
             dup2(fd[WRITE_END], STDOUT_FILENO); // 将标准输出重定向到管道的写端口
             close(fd[WRITE_END]);
 
-            std::vector<std::string> args = split(pipe_args[0], " ");
+            std::vector<std::string> args = parse_cmd(pipe_args[0]);
             execute(args, all_history, true);
             exit(255);
         }
@@ -295,7 +296,7 @@ void exec_pipe(std::string &cmd, std::vector<std::string> &all_history) {
                 dup2(fd[READ_END], STDIN_FILENO); // 将标准输入重定向到管道的读端口
                 close(fd[READ_END]);
 
-                std::vector<std::string> args = split(pipe_args[1], " ");
+                std::vector<std::string> args = parse_cmd(pipe_args[1]);
                 execute(args, all_history, true);
                 exit(255);
             }
@@ -327,7 +328,7 @@ void exec_pipe(std::string &cmd, std::vector<std::string> &all_history) {
                     dup2(fd[WRITE_END], STDOUT_FILENO); // 前面的输出到当前管道写端口，以传给下一个
                 }
 
-                std::vector<std::string> args = split(pipe_args[i], " ");
+                std::vector<std::string> args = parse_cmd(pipe_args[i]);
                 execute(args, all_history, true);
                 exit(255);
             }
