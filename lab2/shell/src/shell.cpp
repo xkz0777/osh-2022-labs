@@ -17,10 +17,44 @@ int main() {
 
         // 读入一行。std::getline 结果不包含换行符。
         std::getline(std::cin, cmd);
+        if (cmd.empty()) {
+            continue;
+        }
         std::ofstream history;
-        history.open("/home/xkz/.shell_history", std::ios_base::app);
-        history << cmd << "\n";
-        all_history.push_back(cmd);
+        history.open(strcat(getenv("HOME"), "/.shell_history"), std::ios_base::app);
+        if (cmd[0] == '!') {
+            if (cmd[1] == '!') { // 不会记录到 history，只会执行
+                cmd = all_history[all_history.size() - 1];
+                std::cout.flush();
+                std::cout << cmd << "\n";
+                std::cout.flush();
+            } else { // 会记录到 history
+                std::stringstream code_stream(cmd.substr(1));
+
+                int code = 0;
+                code_stream >> code;
+
+                // 转换失败
+                if (!code_stream.eof() || code_stream.fail()) {
+                    std::cout << "Invalid number\n";
+                    exit(255);
+                } else if (code > all_history.size()) {
+                    std::cout << "Invalid number\n";
+                    exit(255);
+                }
+                cmd = all_history[code - 1];
+                all_history.push_back(cmd);
+                std::cout.flush();
+                std::cout << cmd << "\n";
+                std::cout.flush();
+                history << cmd << "\n";
+                all_history.push_back(cmd);
+            }
+        } else {
+            history << cmd << "\n";
+            all_history.push_back(cmd);
+        }
+
         history.close();
 
         exec_pipe(cmd, all_history);
@@ -138,13 +172,6 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
         return 0;
     }
 
-    else if (args[0][0] == '!') {
-        int len = all_history.size();
-        if (args[0][1] == '!') {
-
-        }
-    }
-
     return -1; // 是外部命令
 }
 
@@ -206,7 +233,7 @@ std::vector<std::string> read_history() {
     std::vector<std::string> all_history;
     std::ifstream history;
     std::string item;
-    history.open("/home/xkz/.shell_history", std::ios_base::in);
+    history.open(strcat(getenv("HOME"), "/.shell_history"), std::ios_base::in);
     while (std::getline(history, item)) {
         all_history.push_back(item);
     }

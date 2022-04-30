@@ -19,6 +19,7 @@
 #include <fstream>
 // control width
 #include <iomanip>
+#include <cstring>
 
 pid_t Fork();
 void Pipe(int fd[]);
