@@ -16,7 +16,11 @@ int main() {
         print_prompt();
 
         // 读入一行。std::getline 结果不包含换行符。
-        std::getline(std::cin, cmd);
+        if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
+            std::cout << "exit" << "\n";
+            return 0;
+        }
+
         if (cmd.empty()) {
             continue;
         }
@@ -207,7 +211,12 @@ int exec_outer(std::vector<std::string> &args) {
 }
 
 int *redir_process(std::vector<std::string> &args) {
-    return nullptr;
+    int len = args.size();
+    for (int i = 0; i < len; ++i) {
+        if (args[i].find("<") != std::string::npos) {
+
+        }
+    }
 }
 
 // 执行单条命令，在子进程下 execute 时 terminate 为 true，运行完后终止进程

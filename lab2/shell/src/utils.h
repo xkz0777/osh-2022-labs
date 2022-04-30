@@ -36,3 +36,4 @@ inline void trim(std::string &s);
 void replace_path(std::vector<std::string> &args);
 inline std::string get_user_name();
 void print_prompt();
+void add_space(std::string &); // 给命令中所有 < > 和 >> 添加空格
