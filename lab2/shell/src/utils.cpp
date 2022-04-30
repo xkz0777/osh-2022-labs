@@ -77,3 +77,12 @@ handler_t *Signal(int signum, handler_t *handler) {
     }
     return (old_action.sa_handler);
 }
+
+void replace_path(std::vector<std::string> &args) { // 把路径中 ~ 换成家目录
+    int len = args.size();
+    for (int i = 0; i != len; ++i) {
+        if (args[i][0] == '~') {
+            args[i] = getenv("HOME") + args[i].substr(1);
+        }
+    }
+}

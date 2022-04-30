@@ -21,7 +21,8 @@ int main() {
             continue;
         }
         std::ofstream history;
-        history.open(strcat(getenv("HOME"), "/.shell_history"), std::ios_base::app);
+        std::string history_path = getenv("HOME") + std::string("/.shell_history");
+        history.open(history_path.c_str(), std::ios_base::app);
         if (cmd[0] == '!') {
             if (cmd[1] == '!') { // 不会记录到 history，只会执行
                 cmd = all_history[all_history.size() - 1];
@@ -212,6 +213,7 @@ int *redir_process(std::vector<std::string> &args) {
 // 执行单条命令，在子进程下 execute 时 terminate 为 true，运行完后终止进程
 // 父进程下 terminate 为 false 
 void execute(std::vector<std::string> &args, std::vector<std::string> &all_history, bool terminate) {
+    replace_path(args);
     // 执行前先进行重定向
     int *fd = redir_process(args);
     int res = exec_builtin(args, all_history);
@@ -233,7 +235,8 @@ std::vector<std::string> read_history() {
     std::vector<std::string> all_history;
     std::ifstream history;
     std::string item;
-    history.open(strcat(getenv("HOME"), "/.shell_history"), std::ios_base::in);
+    std::string history_path = getenv("HOME") + std::string("/.shell_history");
+    history.open(history_path.c_str(), std::ios_base::in);
     while (std::getline(history, item)) {
         all_history.push_back(item);
     }

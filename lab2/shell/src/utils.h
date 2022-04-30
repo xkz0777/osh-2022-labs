@@ -30,3 +30,4 @@ int lg(int);
 static inline void ltrim(std::string &s);
 static inline void rtrim(std::string &s);
 static inline void trim(std::string &s);
+void replace_path(std::vector<std::string> &args);
