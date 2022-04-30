@@ -8,3 +8,6 @@
 /**/.vscode
 /**/*.dSYM
 /**/*.out
+/lab2/shell/obj
+/lab2/shell/bin
+/lab2/shell/debug
