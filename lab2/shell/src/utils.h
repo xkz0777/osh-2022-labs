@@ -19,6 +19,9 @@
 #include <fstream>
 // control width
 #include <iomanip>
+// 获取用户名和主机名
+#include <unistd.h>
+#include <pwd.h>
 #include <cstring>
 
 pid_t Fork();
@@ -27,7 +30,9 @@ typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
 std::vector<std::string> split(std::string s, const std::string &delimiter);
 int lg(int);
-static inline void ltrim(std::string &s);
-static inline void rtrim(std::string &s);
-static inline void trim(std::string &s);
+inline void ltrim(std::string &s);
+inline void rtrim(std::string &s);
+inline void trim(std::string &s);
 void replace_path(std::vector<std::string> &args);
+inline std::string get_user_name();
+void print_prompt();

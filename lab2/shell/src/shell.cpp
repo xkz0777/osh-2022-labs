@@ -13,7 +13,7 @@ int main() {
 
     while (true) {
         // 打印提示符
-        std::cout << "$ ";
+        print_prompt();
 
         // 读入一行。std::getline 结果不包含换行符。
         std::getline(std::cin, cmd);
@@ -227,7 +227,8 @@ void execute(std::vector<std::string> &args, std::vector<std::string> &all_histo
 
 void sigint_handler(int signum) {
     std::cout.flush();
-    std::cout << "\n" << "$ ";
+    std::cout << "\n";
+    print_prompt();
     std::cout.flush();
 }
 
