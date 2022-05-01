@@ -194,6 +194,7 @@ int exec_outer(std::vector<std::string> &args, int fd[]) {
         // 这里只有子进程才会进入
         // execvp 会完全更换子进程接下来的代码，所以正常情况下 execvp 之后这里的代码就没意义了
         // 如果 execvp 之后的代码被运行了，那就是 execvp 出问题了
+        // 注意重定向位置
         dup2(fd[READ_END], STDIN_FILENO);
         dup2(fd[WRITE_END], STDOUT_FILENO);
         execvp(args[0].c_str(), arg_ptrs);
@@ -223,16 +224,19 @@ int *redir_process(std::vector<std::string> &args) {
             args.erase(args.begin() + pos);
             len = args.size();
             fildes = open(args[pos].c_str(), O_RDONLY);
+            args.erase(args.begin() + pos);
             fd[READ_END] = fildes;
         } else if (args[pos] == ">") { // write
             args.erase(args.begin() + pos);
             len = args.size();
             fildes = open(args[pos].c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            args.erase(args.begin() + pos);
             fd[WRITE_END] = fildes;
         } else if (args[pos] == ">>") { // append
             args.erase(args.begin() + pos);
             len = args.size();
             fildes = open(args[pos].c_str(), O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+            args.erase(args.begin() + pos);
             fd[WRITE_END] = fildes;
         }
         pos++;
