@@ -53,11 +53,15 @@ std::vector<std::string> split(std::string s, const std::string &delimiter) {
     while ((pos = s.find(delimiter)) != std::string::npos) {
         token = s.substr(0, pos);
         trim(token);
-        res.push_back(token);
+        if (!token.empty()) {
+            res.push_back(token);
+        }
         s = s.substr(pos + delimiter.length());
     }
     trim(s);
-    res.push_back(s);
+    if (!s.empty()) {
+        res.push_back(s);
+    }
     return res;
 }
 

@@ -16,11 +16,11 @@ int main() {
         print_prompt();
 
         // 读入一行。std::getline 结果不包含换行符。
-        // if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
-        //     std::cout << "exit" << "\n";
-        //     return 0;
-        // }
-        std::getline(std::cin, cmd);
+        if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
+            std::cout << "exit" << "\n";
+            return 0;
+        }
+        // std::getline(std::cin, cmd);
 
         if (cmd.empty()) {
             continue;
@@ -31,26 +31,23 @@ int main() {
         if (cmd[0] == '!') {
             if (cmd[1] == '!') { // 不会记录到 history，只会执行
                 cmd = all_history[all_history.size() - 1];
-                std::cout.flush();
                 std::cout << cmd << "\n";
                 std::cout.flush();
             } else { // 会记录到 history
                 std::stringstream code_stream(cmd.substr(1));
 
-                int code = 0;
+                size_t code = 0;
                 code_stream >> code;
 
                 // 转换失败
                 if (!code_stream.eof() || code_stream.fail()) {
                     std::cout << "Invalid number\n";
-                    exit(255);
+                    continue;
                 } else if (code > all_history.size()) {
                     std::cout << "Invalid number\n";
-                    exit(255);
+                    continue;
                 }
                 cmd = all_history[code - 1];
-                all_history.push_back(cmd);
-                std::cout.flush();
                 std::cout << cmd << "\n";
                 std::cout.flush();
                 history << cmd << "\n";
@@ -158,7 +155,7 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
         int width = lg(len);
         if (args.size() <= 1) {
             for (int i = 0; i < len; ++i) {
-                std::cout << std::setw(lg(len)) << i + 1 << "  " << all_history[i] << "\n";
+                std::cout << std::setw(width) << i + 1 << "  " << all_history[i] << "\n";
             }
         } else {
             std::stringstream code_stream(args[1]);
@@ -172,7 +169,7 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
             }
 
             for (int i = len - code; i < len; ++i) {
-                std::cout << std::setw(lg(len)) << i + 1 << "  " << all_history[i] << "\n";
+                std::cout << std::setw(width) << i + 1 << "  " << all_history[i] << "\n";
             }
         }
         return 0;
@@ -182,7 +179,7 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
 }
 
 // 外部命令, 创建子进程完成
-int exec_outer(std::vector<std::string> &args) {
+int exec_outer(std::vector<std::string> &args, int fd[]) {
     pid_t pid = Fork();
 
     // std::vector<std::string> 转 char **
@@ -197,6 +194,8 @@ int exec_outer(std::vector<std::string> &args) {
         // 这里只有子进程才会进入
         // execvp 会完全更换子进程接下来的代码，所以正常情况下 execvp 之后这里的代码就没意义了
         // 如果 execvp 之后的代码被运行了，那就是 execvp 出问题了
+        dup2(fd[READ_END], STDIN_FILENO);
+        dup2(fd[WRITE_END], STDOUT_FILENO);
         execvp(args[0].c_str(), arg_ptrs);
 
         // 所以这里直接报错
@@ -213,30 +212,49 @@ int exec_outer(std::vector<std::string> &args) {
 
 int *redir_process(std::vector<std::string> &args) {
     int len = args.size();
-    for (int i = 0; i < len; ++i) {
-        if (args[i].find("<") != std::string::npos) {
-
+    int pos = 0;
+    int *fd;
+    fd = new int[2];
+    fd[READ_END] = STDIN_FILENO;
+    fd[WRITE_END] = STDOUT_FILENO;
+    while (pos < len) {
+        int fildes;
+        if (args[pos] == "<") { // read
+            args.erase(args.begin() + pos);
+            len = args.size();
+            fildes = open(args[pos].c_str(), O_RDONLY);
+            fd[READ_END] = fildes;
+        } else if (args[pos] == ">") { // write
+            args.erase(args.begin() + pos);
+            len = args.size();
+            fildes = open(args[pos].c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+            fd[WRITE_END] = fildes;
+        } else if (args[pos] == ">>") { // append
+            args.erase(args.begin() + pos);
+            len = args.size();
+            fildes = open(args[pos].c_str(), O_RDWR | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+            fd[WRITE_END] = fildes;
         }
+        pos++;
     }
+    return fd;
 }
 
 // 执行单条命令，在子进程下 execute 时 terminate 为 true，运行完后终止进程
 // 父进程下 terminate 为 false 
 void execute(std::vector<std::string> &args, std::vector<std::string> &all_history, bool terminate) {
     replace_path(args);
-    // 执行前先进行重定向
-    int *fd = redir_process(args);
     int res = exec_builtin(args, all_history);
     if (res == -1) {
-        res = exec_outer(args);
+        int *fd = redir_process(args);
+        res = exec_outer(args, fd);
     }
     if (terminate) {
         exit(res);
     }
 }
 
-void sigint_handler(int signum) {
-    std::cout.flush();
+void sigint_handler(int) {
     std::cout << "\n";
     print_prompt();
     std::cout.flush();

@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <cstring>
+// open
+#include <fcntl.h>
 
 pid_t Fork();
 void Pipe(int fd[]);
