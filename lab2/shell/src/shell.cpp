@@ -25,6 +25,9 @@ int main() {
         if (cmd.empty()) {
             continue;
         }
+        if (alias_table.find(cmd) != alias_table.end()) {
+            cmd = alias_table[cmd];
+        }
         std::ofstream history;
         std::string history_path = getenv("HOME") + std::string("/.shell_history");
         history.open(history_path.c_str(), std::ios_base::app);
@@ -143,7 +146,7 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
         // 转换失败
         if (!code_stream.eof() || code_stream.fail()) {
             std::cout << "Invalid exit code\n";
-            exit(255);
+            return 1;
         }
 
         exit(code);
@@ -165,11 +168,24 @@ int exec_builtin(std::vector<std::string> &args, std::vector<std::string> &all_h
             // 转换失败
             if (!code_stream.eof() || code_stream.fail()) {
                 std::cout << "Invalid number\n";
-                exit(255);
+                return 1;
             }
 
             for (int i = len - code; i < len; ++i) {
                 std::cout << std::setw(width) << i + 1 << "  " << all_history[i] << "\n";
+            }
+        }
+        return 0;
+    }
+
+    else if (args[0] == "alias") {
+        int len = args.size();
+        for (int i = 1; i < len; ++i) {
+            size_t pos = args[i].find("=");
+            if (pos != std::string::npos) {
+                std::string alias = args[i].substr(0, pos);
+                std::string cmd = args[i].substr(pos + 1);
+                alias_table[alias] = cmd;
             }
         }
         return 0;

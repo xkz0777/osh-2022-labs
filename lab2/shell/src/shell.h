@@ -12,3 +12,5 @@ void exec_pipe(std::string &, std::vector<std::string> &);
 int *redir_process(std::vector<std::string> &args);
 void sigint_handler(int);
 std::vector<std::string> read_history();
+
+std::unordered_map<std::string, std::string> alias_table;

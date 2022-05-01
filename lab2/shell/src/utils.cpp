@@ -44,19 +44,37 @@ int lg(int a) {
     return res;
 }
 
-// 经典的 cpp string split 实现
+// 经典的 cpp string split 实现，但不分割引号内的空格和被转义的空格，同时 trim 一下分完的字符串
 // https://stackoverflow.com/a/14266139/11691878
 std::vector<std::string> split(std::string s, const std::string &delimiter) {
     std::vector<std::string> res;
     size_t pos = 0;
+    size_t single_pos, double_pos;
     std::string token;
     while ((pos = s.find(delimiter)) != std::string::npos) {
-        token = s.substr(0, pos);
-        trim(token);
-        if (!token.empty()) {
-            res.push_back(token);
+        if ((single_pos = s.find("'")) != std::string::npos && single_pos < pos) {
+            size_t end = s.find("'", single_pos + 1);
+            token = s.substr(0, single_pos) + s.substr(single_pos + 1, end - single_pos - 1);
+            trim(token);
+            if (!token.empty())
+                res.push_back(token);
+            s = s.substr(end + 1);
+            continue;
+        } else if ((double_pos = s.find("\"")) != std::string::npos && double_pos < pos) {
+            size_t end = s.find("\"", double_pos + 1);
+            token = s.substr(0, double_pos) + s.substr(double_pos + 1, end - double_pos - 1);
+            trim(token);
+            if (!token.empty())
+                res.push_back(token);
+            s = s.substr(end + 1);
+            continue;
+        } else {
+            token = s.substr(0, pos);
+            trim(token);
+            if (!token.empty())
+                res.push_back(token);
+            s = s.substr(pos + delimiter.length());
         }
-        s = s.substr(pos + delimiter.length());
     }
     trim(s);
     if (!s.empty()) {
@@ -156,3 +174,29 @@ std::vector<std::string> parse_cmd(std::string &cmd) {
 //     }
 //     return new_vec;
 // }
+
+// 
+std::string string_replace(const std::string &s, const std::string &findS, const std::string &replaceS) {
+    std::string result = s;
+    auto pos = s.find(findS);
+    if (pos == std::string::npos) {
+        return result;
+    }
+    result.replace(pos, findS.length(), replaceS);
+    return string_replace(result, findS, replaceS);
+}
+
+std::string parse_escape(const std::string &s) {
+    static std::vector<std::pair<std::string, std::string> > patterns = {
+        { "\\\\" , "\\" },
+        { "\\n", "\n" },
+        { "\\r", "\r" },
+        { "\\t", "\t" },
+        { "\\\"", "\"" }
+    };
+    std::string result = s;
+    for (const auto &p : patterns) {
+        result = string_replace(result, p.first, p.second);
+    }
+    return result;
+}
