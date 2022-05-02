@@ -11,3 +11,6 @@
 /lab2/shell/obj
 /lab2/shell/bin
 /lab2/shell/debug
+/lab2/strace/*
+!/lab2/strace/Makefile
+!/lab2/strace/strace.cpp
