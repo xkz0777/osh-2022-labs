@@ -33,8 +33,7 @@ int main(int argc, char **argv) {
         FATAL("%s", strerror(errno));
     case 0:  /* child */
         ptrace(PTRACE_TRACEME, 0, 0, 0);
-        /* Because we're now a tracee, execvp will block until the parent
-         * attaches and allows us to continue. */
+        /* Because we're now a tracee, execvp will block until the parent attaches and allows us to continue. */
         execvp(argv[1], argv + 1);
         FATAL("%s", strerror(errno));
     }
@@ -57,7 +56,7 @@ int main(int argc, char **argv) {
         long syscall = regs.orig_rax;
 
         /* Print a representation of the system call */
-        fprintf(stderr, "%ld(%ld, %ld, %ld, %ld, %ld, %ld)",
+        fprintf(stderr, "%ld(%ld, %ld, %ld, %ld, %ld, %ld)\n",
             syscall,
             (long) regs.rdi, (long) regs.rsi, (long) regs.rdx,
             (long) regs.r10, (long) regs.r8, (long) regs.r9);
@@ -70,13 +69,13 @@ int main(int argc, char **argv) {
 
         /* Get system call result */
         if (ptrace(PTRACE_GETREGS, pid, 0, &regs) == -1) {
-            fputs(" = ?\n", stderr);
+            // fputs(" = ?\n", stderr);
             if (errno == ESRCH)
                 exit(regs.rdi); // system call was _exit(2) or similar
             FATAL("%s", strerror(errno));
         }
 
         /* Print system call result */
-        fprintf(stderr, " = %ld\n", (long) regs.rax);
+        // fprintf(stderr, " = %ld\n", (long) regs.rax);
     }
 }
