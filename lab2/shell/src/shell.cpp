@@ -6,7 +6,6 @@ int main() {
 
     Signal(SIGINT, sigint_handler); // 处理 ctrl + c
     // 用来存储读入的一行命令
-    std::string cmd;
 
     // 读取 history，存为 vector<string>
     std::vector<std::string> all_history = read_history();
@@ -14,12 +13,32 @@ int main() {
     while (true) {
         // 打印提示符
         print_prompt();
-
         // 读入一行。std::getline 结果不包含换行符。
-        if (!std::getline(std::cin, cmd)) { // 处理 ctrl + d
+        std::string cmd;
+        if (!std::getline(std::cin, cmd)) {
             std::cout << "exit" << "\n";
             return 0;
         }
+
+        // while (getline(cmd)) { // 处理 ctrl + d
+        //     if (cmd.empty()) {
+        //         std::cout << "exit" << "\n";
+        //         return 0;
+        //     }
+        // }
+
+        // else if (res == 1) { // up key
+        //     history_pos--;
+        //     cmd = all_history[history_pos];
+        // }
+
+        // else if (res == 2) {
+        //     history_pos++;
+        //     if (history_pos >= all_history.size()) {
+        //         continue;
+        //     }
+        //     cmd = all_history[history_pos];
+        // }
         // std::getline(std::cin, cmd);
 
         if (cmd.empty()) {

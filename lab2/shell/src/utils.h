@@ -26,6 +26,11 @@
 // open
 #include <fcntl.h>
 
+const int UP = 65;
+const int DOWN = 66;
+const int RIGHT = 67;
+const int LEFT = 68;
+
 pid_t Fork();
 void Pipe(int fd[]);
 typedef void handler_t(int);
@@ -41,4 +46,8 @@ void print_prompt();
 void add_space_str(std::string &); // 给命令中所有 < > 和 >> 添加空格
 // void add_space_vec(std::vector<std::string> &);
 std::vector<std::string> parse_cmd(std::string &cmd);
+std::vector<std::string> concatenate(std::vector<std::string> &args);
 // std::vector<std::string> parse_cmd(std::vector<std::string> &args);
+std::string string_replace(const std::string &s, const std::string &findS, const std::string &replaceS);
+std::string parse_escape(const std::string &s);
+// int getline(std::string &cmd);

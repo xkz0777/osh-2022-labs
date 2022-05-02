@@ -1,6 +1,6 @@
 #include "utils.h"
-// trim from start (in place)
 
+// trim from start (in place)
 inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
         return !std::isspace(ch);
@@ -44,7 +44,7 @@ int lg(int a) {
     return res;
 }
 
-// 经典的 cpp string split 实现，但不分割引号内的空格和被转义的空格，同时 trim 一下分完的字符串
+// 经典的 cpp string split 实现，但不分割引号内的空格，同时 trim 一下分完的字符串
 // https://stackoverflow.com/a/14266139/11691878
 std::vector<std::string> split(std::string s, const std::string &delimiter) {
     std::vector<std::string> res;
@@ -164,8 +164,10 @@ void add_space_str(std::string &arg) {
 // }
 
 std::vector<std::string> parse_cmd(std::string &cmd) {
+    cmd = parse_escape(cmd);
     add_space_str(cmd);
     std::vector<std::string> args = split(cmd, " ");
+    args = concatenate(args);
     return args;
 }
 
@@ -179,7 +181,31 @@ std::vector<std::string> parse_cmd(std::string &cmd) {
 //     return new_vec;
 // }
 
-// 
+// 把以转义符结尾的字符串跟下一项拼到一起来处理转义
+std::vector<std::string> concatenate(std::vector<std::string> &args) {
+    std::vector<std::string> new_args;
+    std::string new_arg;
+    int size = args.size();
+    bool flag = false;
+    for (int i = 0; i < size; ++i) {
+        std::string &arg = args[i];
+        if (arg[arg.length() - 1] == '\\') {
+            new_arg += arg.substr(0, arg.length() - 1) + " ";
+            flag = true;
+        } else {
+            if (flag) {
+                new_arg += arg;
+                flag = false;
+            } else {
+                new_arg = arg;
+            }
+            new_args.push_back(new_arg);
+            new_arg = "";
+        }
+    }
+    return new_args;
+}
+
 std::string string_replace(const std::string &s, const std::string &findS, const std::string &replaceS) {
     std::string result = s;
     auto pos = s.find(findS);
@@ -204,3 +230,19 @@ std::string parse_escape(const std::string &s) {
     }
     return result;
 }
+
+// int getline(std::string &cmd) {
+//     int c;
+//     c = std::cin.get();
+//     while (!std::cin.eof()) {
+//         if (c == '\n') {
+//             break;
+//         }
+//         cmd.push_back(char(c));
+//         c = std::cin.get();
+//     }
+//     if (std::cin.eof()) {
+//         return 1;
+//     }
+//     return 0;
+// }
