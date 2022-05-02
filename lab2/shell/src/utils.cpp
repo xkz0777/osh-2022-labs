@@ -52,29 +52,33 @@ std::vector<std::string> split(std::string s, const std::string &delimiter) {
     size_t single_pos, double_pos;
     std::string token;
     while ((pos = s.find(delimiter)) != std::string::npos) {
-        if ((single_pos = s.find("'")) != std::string::npos && single_pos < pos) {
-            size_t end = s.find("'", single_pos + 1);
-            token = s.substr(0, single_pos) + s.substr(single_pos + 1, end - single_pos - 1);
-            trim(token);
-            if (!token.empty())
-                res.push_back(token);
-            s = s.substr(end + 1);
-            continue;
-        } else if ((double_pos = s.find("\"")) != std::string::npos && double_pos < pos) {
-            size_t end = s.find("\"", double_pos + 1);
-            token = s.substr(0, double_pos) + s.substr(double_pos + 1, end - double_pos - 1);
-            trim(token);
-            if (!token.empty())
-                res.push_back(token);
-            s = s.substr(end + 1);
-            continue;
-        } else {
-            token = s.substr(0, pos);
-            trim(token);
-            if (!token.empty())
-                res.push_back(token);
-            s = s.substr(pos + delimiter.length());
+        single_pos = s.find("'");
+        double_pos = s.find("\"");
+        if (single_pos != std::string::npos || double_pos != std::string::npos) {
+            if (single_pos < double_pos && single_pos < pos) {
+                size_t end = s.find("'", single_pos + 1);
+                token = s.substr(0, single_pos) + s.substr(single_pos + 1, end - single_pos - 1);
+                trim(token);
+                if (!token.empty())
+                    res.push_back(token);
+                s = s.substr(end + 1);
+                continue;
+            } else if (double_pos < single_pos && double_pos < pos) {
+                size_t end = s.find("\"", double_pos + 1);
+                token = s.substr(0, double_pos) + s.substr(double_pos + 1, end - double_pos - 1);
+                trim(token);
+                if (!token.empty())
+                    res.push_back(token);
+                s = s.substr(end + 1);
+                continue;
+            }
         }
+
+        token = s.substr(0, pos);
+        trim(token);
+        if (!token.empty())
+            res.push_back(token);
+        s = s.substr(pos + delimiter.length());
     }
     trim(s);
     if (!s.empty()) {
