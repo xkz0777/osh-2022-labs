@@ -45,3 +45,7 @@
 ### Alias
 
 支持 alias。
+
+### 变量
+
+支持 `echo $SHELL`，`echo $HOME` 等。

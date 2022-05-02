@@ -51,3 +51,4 @@ std::vector<std::string> concatenate(std::vector<std::string> &args);
 std::string string_replace(const std::string &s, const std::string &findS, const std::string &replaceS);
 std::string parse_escape(const std::string &s);
 // int getline(std::string &cmd);
+void parse_variable(std::vector<std::string> &args);

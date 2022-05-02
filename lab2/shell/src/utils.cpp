@@ -25,7 +25,11 @@ void print_prompt() {
     gethostname(hostname, PATH_MAX - 1);
     char cwd[PATH_MAX];
 
-    getcwd(cwd, PATH_MAX - 1);
+    char *res = getcwd(cwd, PATH_MAX - 1);
+    if (res == nullptr) {
+        std::cout << "Error: cwd too long" << "\n";
+        return;
+    }
     std::string cwd_string = cwd;
 
     char *pos = strstr(cwd, getenv("HOME"));
@@ -168,6 +172,7 @@ std::vector<std::string> parse_cmd(std::string &cmd) {
     add_space_str(cmd);
     std::vector<std::string> args = split(cmd, " ");
     args = concatenate(args);
+    parse_variable(args);
     return args;
 }
 
@@ -246,3 +251,16 @@ std::string parse_escape(const std::string &s) {
 //     }
 //     return 0;
 // }
+
+void parse_variable(std::vector<std::string> &args) {
+    int size = args.size();
+    for (int i = 0; i < size; ++i) {
+        if (args[i][0] == '$') {
+            std::string var;
+            if (getenv(args[i].substr(1).c_str())) {
+                var = getenv(args[i].substr(1).c_str());
+                args[i] = var;
+            }
+        }
+    }
+}
