@@ -49,3 +49,13 @@
 ### 变量
 
 支持 `echo $SHELL`，`echo $HOME` 等。
+
+## Strace
+
+### 编译
+
+`make` 后可执行文件路径：`lab2/strace/strace`
+
+### 功能
+
+仅基础部分。
