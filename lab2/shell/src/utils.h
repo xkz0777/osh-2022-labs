@@ -25,6 +25,7 @@
 #include <cstring>
 // open
 #include <fcntl.h>
+#include <unordered_map>
 
 const int UP = 65;
 const int DOWN = 66;
@@ -34,7 +35,6 @@ const int LEFT = 68;
 pid_t Fork();
 void Pipe(int fd[]);
 typedef void handler_t(int);
-handler_t *Signal(int signum, handler_t *handler);
 std::vector<std::string> split(std::string s, const std::string &delimiter);
 int lg(int);
 inline void ltrim(std::string &s);

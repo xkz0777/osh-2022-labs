@@ -109,20 +109,6 @@ void Pipe(int fd[]) {
     }
 }
 
-handler_t *Signal(int signum, handler_t *handler) {
-    struct sigaction action, old_action;
-
-    action.sa_handler = handler;
-    sigemptyset(&action.sa_mask); /* block sigs of type being handled */
-    action.sa_flags = SA_RESTART; /* restart syscalls if possible */
-
-    if (sigaction(signum, &action, &old_action) < 0) {
-        std::cout << "Signal error\n";
-        exit(255);
-    }
-    return (old_action.sa_handler);
-}
-
 void replace_path(std::vector<std::string> &args) { // 把路径中 ~ 换成家目录
     int len = args.size();
     for (int i = 0; i != len; ++i) {
