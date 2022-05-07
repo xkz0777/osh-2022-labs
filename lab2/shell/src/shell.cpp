@@ -19,6 +19,10 @@ int main() {
             std::cout << "exit" << "\n";
             return 0;
         }
+        if (std::cin.eof()) {
+            std::cout << "\n" << "exit" << "\n";
+            return 0;
+        }
 
         // while (getline(cmd)) { // 处理 ctrl + d
         //     if (cmd.empty()) {
