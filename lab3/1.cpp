@@ -11,12 +11,24 @@ struct Pipe {
     int fd_recv;
 };
 
+
 void *handle_chat(void *data) {
     struct Pipe *pipe = (struct Pipe *) data;
     char buffer[1024] = "Message: ";
+    char tmp_buffer[1024] = "Message: "; // 处理换行时，分割后的信息拷贝到 tmp_buffer 里
     ssize_t len;
-    while ((len = recv(pipe->fd_send, buffer + 8, 1000, 0)) > 0) {
-        send(pipe->fd_recv, buffer, len + 8, 0);
+    int remain = 8;
+    char *pos = NULL;
+    while ((len = recv(pipe->fd_send, buffer + remain, 1000, 0)) > 0) {
+        while ((pos = strchr(buffer, '\n')) != NULL) {
+            strncpy(tmp_buffer + 8, buffer + 8, pos - buffer + 1 - 8);
+            tmp_buffer[pos - buffer + 2] = '\0';
+            send(pipe->fd_recv, tmp_buffer, strlen(tmp_buffer), 0);
+            remain = len - (pos - buffer - 8 + 1);
+            strncpy(tmp_buffer + 8, buffer + (pos + 1 - buffer), remain);
+            tmp_buffer[pos + 1 - buffer + remain + 1] = '\0';
+            strncpy(buffer, tmp_buffer, 1024);
+        }
     }
     return NULL;
 }
@@ -33,7 +45,7 @@ int main(int argc, char **argv) {
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(port);
     socklen_t addr_len = sizeof(addr);
-    if (bind(fd, (struct sockaddr *) &addr, sizeof(addr))) {
+    if (bind(fd, (struct sockaddr *) &addr, addr_len)) {
         perror("bind");
         return 1;
     }
