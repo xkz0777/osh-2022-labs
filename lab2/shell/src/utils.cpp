@@ -109,20 +109,6 @@ void Pipe(int fd[]) {
     }
 }
 
-handler_t *Signal(int signum, handler_t *handler) {
-    struct sigaction action, old_action;
-
-    action.sa_handler = handler;
-    sigemptyset(&action.sa_mask); /* block sigs of type being handled */
-    action.sa_flags = SA_RESTART; /* restart syscalls if possible */
-
-    if (sigaction(signum, &action, &old_action) < 0) {
-        std::cout << "Signal error\n";
-        exit(255);
-    }
-    return (old_action.sa_handler);
-}
-
 void replace_path(std::vector<std::string> &args) { // 把路径中 ~ 换成家目录
     int len = args.size();
     for (int i = 0; i != len; ++i) {
@@ -161,12 +147,6 @@ void add_space_str(std::string &arg) {
     }
 }
 
-// void add_space_vec(std::vector<std::string> &args) {
-//     for (auto arg : args) {
-//         add_space_str(arg);
-//     }
-// }
-
 std::vector<std::string> parse_cmd(std::string &cmd) {
     cmd = parse_escape(cmd);
     add_space_str(cmd);
@@ -175,16 +155,6 @@ std::vector<std::string> parse_cmd(std::string &cmd) {
     parse_variable(args);
     return args;
 }
-
-// std::vector<std::string> parse_cmd(std::vector<std::string> &args) {
-//     add_space_vec(args);
-//     std::vector<std::string> new_vec;
-//     for (auto arg : args) {
-//         std::vector<std::string> split_arg = split(arg, " ");
-//         new_vec.insert(new_vec.end(), split_arg.begin(), split_arg.end());
-//     }
-//     return new_vec;
-// }
 
 // 把以转义符结尾的字符串跟下一项拼到一起来处理转义
 std::vector<std::string> concatenate(std::vector<std::string> &args) {
@@ -235,22 +205,6 @@ std::string parse_escape(const std::string &s) {
     }
     return result;
 }
-
-// int getline(std::string &cmd) {
-//     int c;
-//     c = std::cin.get();
-//     while (!std::cin.eof()) {
-//         if (c == '\n') {
-//             break;
-//         }
-//         cmd.push_back(char(c));
-//         c = std::cin.get();
-//     }
-//     if (std::cin.eof()) {
-//         return 1;
-//     }
-//     return 0;
-// }
 
 void parse_variable(std::vector<std::string> &args) {
     int size = args.size();

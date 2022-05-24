@@ -4,7 +4,7 @@ int main() {
     // 不同步 iostream 和 cstdio 的 buffer
     std::ios::sync_with_stdio(false);
 
-    Signal(SIGINT, sigint_handler); // 处理 ctrl + c
+    signal(SIGINT, sigint_handler); // 处理 ctrl + c
     // 用来存储读入的一行命令
 
     // 读取 history，存为 vector<string>
@@ -17,6 +17,10 @@ int main() {
         std::string cmd;
         if (!std::getline(std::cin, cmd)) {
             std::cout << "exit" << "\n";
+            return 0;
+        }
+        if (std::cin.eof()) {
+            std::cout << "\n" << "exit" << "\n";
             return 0;
         }
 
