@@ -15,5 +15,4 @@
 !/lab2/strace/Makefile
 !/lab2/strace/strace.cpp
 /lab3/*
-!/lab3/*.cpp
-!/lab3/Makefile
+!/lab3/chat_room_server
