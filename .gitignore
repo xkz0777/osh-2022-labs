@@ -17,3 +17,4 @@
 /lab3/*
 !/lab3/chat_room_server
 /lab3/chat_room_server/target/
+!/lab3/README.md
