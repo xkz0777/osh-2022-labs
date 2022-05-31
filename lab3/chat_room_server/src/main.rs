@@ -3,29 +3,26 @@ use std::net::{TcpListener, TcpStream};
 use std::{env, process, str, thread};
 
 fn handler_chat(tcp_read: &mut TcpStream, tcp_write: &mut TcpStream) {
-    let mut prompt = "Message: ".as_bytes().to_vec();
-    let mut buffer = [0 as u8; 1024];
-    loop {
-        if let Ok(recieved) = tcp_read.read(&mut buffer) {
-            if recieved == 0 {
-                // 不发空消息
-                break;
-            } else {
-                let buffer_string =
-                    str::from_utf8(&buffer[0..recieved]).expect("Invalid UTF-8 message");
-                buffer_string.split('\n').for_each(|line| {
-                    if line.len() > 0 {
-                        let mut line = line.as_bytes().to_vec();
-                        line.push('\n' as u8); // 还得加上换行符
-                        prompt.extend(line.iter());
-                        tcp_write
-                            .write_all(prompt.as_slice()) // write_all 处理大文件
-                            .expect("TCP write error");
-                    }
-                });
-            }
+    let prompt = "Message: ".as_bytes().to_vec();
+    let mut buffer = [0_u8; 1024];
+    while let Ok(recieved) = tcp_read.read(&mut buffer) {
+        if recieved == 0 {
+            // 不发空消息
+            continue;
         } else {
-            break;
+            let buffer_string =
+                str::from_utf8(&buffer[0..recieved]).expect("Invalid UTF-8 message");
+            buffer_string.split('\n').for_each(|line| {
+                if !line.is_empty() {
+                    let mut line = line.as_bytes().to_vec();
+                    line.push(b'\n'); // 还得加上换行符
+                    let mut message = prompt.clone();
+                    message.extend(line.iter());
+                    tcp_write
+                        .write_all(message.as_slice()) // write_all 处理大文件
+                        .expect("TCP write error");
+                }
+            });
         }
     }
 }
