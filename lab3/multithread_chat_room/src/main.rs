@@ -36,10 +36,8 @@ fn handle_send(
                         String::from_utf8(message.clone()).expect("Invalid UTF-8 message");
                     let clients = clients_mutex_clone.lock().unwrap();
                     for (i, client) in clients.iter().enumerate() {
-                        if let Some(_) = client {
-                            if i != sender_id {
-                                sender.send(Message::new(i, message_str.clone())).unwrap();
-                            }
+                        if client.is_some() && i != sender_id {
+                            sender.send(Message::new(i, message_str.clone())).unwrap();
                         }
                     }
                     drop(clients);
@@ -60,7 +58,7 @@ fn handle_receive(receiver: Receiver<Message>, clients_mutex: Arc<Mutex<Vec<Opti
             .unwrap()
             .as_mut()
             .unwrap()
-            .write_all(&message.content.as_bytes().to_vec())
+            .write_all(message.content.as_bytes())
             .unwrap();
         drop(clients);
     }
