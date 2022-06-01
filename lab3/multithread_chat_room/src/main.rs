@@ -100,6 +100,7 @@ fn main() {
     loop {
         if let Ok((client, _address)) = listener.accept() {
             println!("Client connected: {}", client.peer_addr().unwrap());
+            // listener 是非阻塞的，client 需要设回阻塞，否则 `handle_send` 里的 while 循环会在连接后立即退出
             client.set_nonblocking(false).expect("Cannot set blocking");
             // 加入客户队列
             let clients_mutex_clone = Arc::clone(&clients_mutex);

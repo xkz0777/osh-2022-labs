@@ -9,8 +9,8 @@ fn handler_chat(mut tcp_read: TcpStream, tcp_write: &mut TcpStream) {
     let mut buffer = [0_u8; 1024];
     while let Ok(recieved) = tcp_read.read(&mut buffer) {
         if recieved == 0 {
-            // 不发空消息
-            continue;
+            // 客户端退出
+            break;
         } else {
             buffer[0..recieved].iter().for_each(|x| {
                 message.push(*x);
