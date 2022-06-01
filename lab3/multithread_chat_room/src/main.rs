@@ -98,8 +98,8 @@ fn main() {
 
     // 等待 client 连接
     loop {
-        if let Ok((client, _address)) = listener.accept() {
-            println!("Client connected: {}", client.peer_addr().unwrap());
+        if let Ok((client, address)) = listener.accept() {
+            println!("Client connected: {}", address);
             // listener 是非阻塞的，client 需要设回阻塞，否则 `handle_send` 里的 while 循环会在连接后立即退出
             client.set_nonblocking(false).expect("Cannot set blocking");
             // 加入客户队列

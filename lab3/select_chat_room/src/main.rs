@@ -8,6 +8,12 @@ use std::{env, io, mem, process, ptr, time};
 
 pub struct FdSet(libc::fd_set);
 
+impl Default for FdSet {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FdSet {
     pub fn new() -> FdSet {
         unsafe {
@@ -23,7 +29,7 @@ impl FdSet {
         unsafe { libc::FD_SET(fd, &mut self.0) }
     }
     pub fn is_set(&mut self, fd: RawFd) -> bool {
-        unsafe { libc::FD_ISSET(fd, &mut self.0) }
+        unsafe { libc::FD_ISSET(fd, &self.0) }
     }
 }
 
@@ -155,7 +161,7 @@ fn main() {
             }
         }
         fd_set = FdSet::new();
-        for (_, fd) in &fd_map {
+        for fd in fd_map.values() {
             fd_set.set(fd.as_raw_fd());
         }
         fd_set.set(listener_raw_fd);
