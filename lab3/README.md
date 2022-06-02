@@ -6,6 +6,10 @@
 
 `multithread_chat_room` 是基于多线程的多人聊天室，使用 `std::sync::mpsc::channel` 作为消息队列，`std::sync::{Arc, Mutex}` 作为互斥锁，不支持发送非文本文件，因为消息作为 `String` 封装到了 `struct Message` 里。
 
+`select_chat_room` 是用 `select` 完成的多人聊天室。
+
+`epoll_chat_room` 是用 `epoll` 完成的多人聊天室。
+
 ## 编译运行
 
-`cargo run <port>` 即可
+全部 `cargo run <port>` 即可
