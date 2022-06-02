@@ -23,6 +23,7 @@ name = "io_uring_chat_room"
 version = "0.1.0"
 dependencies = [
  "io-uring",
+ "libc",
 ]
 
 [[package]]
