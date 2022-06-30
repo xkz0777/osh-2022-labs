@@ -1,5 +1,9 @@
 # Lab2 Report
 
+Name: 许坤钊
+
+Student number: PB20111714
+
 ## Shell
 
 ### Compile

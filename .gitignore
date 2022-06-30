@@ -3,6 +3,7 @@
 !/lab1/initrd.cpio.gz
 !/lab1/bzImage
 !/lab1/syscall
+!/lab1/README.md
 /lab1/syscall/initrd.cpio.gz
 /**/.DS_Store
 /**/.vscode

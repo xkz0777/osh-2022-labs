@@ -1,5 +1,9 @@
 # Lab3 Report
 
+Name: 许坤钊
+
+Student number: PB20111714
+
 ## 目录结构及简单的功能介绍
 
 `chat_room_server` 是完善后的双人聊天室代码，支持发送非文本文件（直接遍历 `vector`，没有转成字符串），可以测试大文件发送。

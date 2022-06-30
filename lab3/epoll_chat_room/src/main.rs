@@ -74,6 +74,8 @@ fn main() -> io::Result<()> {
     // server 开始监听
     let listener = TcpListener::bind(addr)?;
     listener.set_nonblocking(true)?;
+    println!("Server listening on port {}", port);
+
     let listener_raw_fd = listener.as_raw_fd();
 
     let mut id: u64 = 0;
