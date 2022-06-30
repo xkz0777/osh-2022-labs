@@ -130,19 +130,19 @@ fn main() -> io::Result<()> {
                 other => {
                     // id 为 other 的 client 发来消息
                     let mut stream = fd_map.get(&other).unwrap();
-                    while let Ok(recieved) = stream.read(&mut buffer) {
+                    while let Ok(received) = stream.read(&mut buffer) {
                         println!(
                             "Client {} sent message: {}",
                             stream.peer_addr().unwrap(),
                             std::str::from_utf8(buffer.as_slice()).unwrap()
                         );
-                        if recieved == 0 {
+                        if received == 0 {
                             remove_interest(epoll_fd, stream.as_raw_fd())?;
                             println!("Removed Client {}", stream.peer_addr().unwrap());
                             fd_map.remove(&other);
                             break;
                         } else {
-                            buffer[0..recieved].iter().for_each(|x| {
+                            buffer[0..received].iter().for_each(|x| {
                                 message.push(*x);
                                 if *x == b'\n' {
                                     for (id, mut target) in &fd_map {
